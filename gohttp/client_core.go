@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -26,6 +25,13 @@ func (c *httpClient) do(method string, url string, headers http.Header, body int
 	if err != nil {
 		return nil, errors.New("unable to create request")
 	}
+
+	
+	if mock := mockupServer.getMock(method, url, string(requestBody)); mock != nil {
+		resp, err := mock.GetResponse()
+		return resp, err
+	}
+
 
 	request, err := http.NewRequest(method, url, bytes.NewBuffer(requestBody))
 
@@ -61,7 +67,6 @@ func (c *httpClient) getHttpClient() *http.Client {
 	// sync.Once.Do --- a function that regardless of how many goroutines call it, will only get done once!
 	c.clientOnce.Do(
 		func() {
-			fmt.Println("CREATING NEW HTTP CLIENT!!!!")
 			c.client = &http.Client{
 				Timeout: c.getConnectionTimeout() + c.getResponseTimeout(),
 				Transport: &http.Transport{

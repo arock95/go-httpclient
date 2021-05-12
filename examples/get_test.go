@@ -2,17 +2,23 @@ package examples
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/arock95/go-httpclient/gohttp"
 )
 
-func TestGet(t *testing.T) {
-	// Tell Http library to mock
+func TestMain(m *testing.M) {
+	fmt.Println("About to start testing up in here...")
 	gohttp.StartMockServer()
 
+	os.Exit(m.Run())
+}
+
+func TestGet(t *testing.T) {
 	t.Run("TestErrorFetchingFromGithub", func(t *testing.T) {
 		mock := gohttp.Mock{
 			Method: http.MethodGet,
@@ -33,6 +39,7 @@ func TestGet(t *testing.T) {
 		}
 
 		if err.Error() != "timeout getting github endpoint" {
+			fmt.Println(err.Error())
 			t.Error("invalid error message")
 		}
 	})
@@ -42,7 +49,7 @@ func TestGet(t *testing.T) {
 			Method:             http.MethodGet,
 			Url:                "http://api.github.com",
 			ResponseStatusCode: http.StatusOK,
-			ResponseBody:        `{"current_user_url": 123}`,
+			ResponseBody:       `{"current_user_url": 123}`,
 		}
 
 		gohttp.AddMock(mock)
@@ -57,7 +64,7 @@ func TestGet(t *testing.T) {
 			t.Error("an error expected")
 		}
 
-		if !strings.Contains(err.Error(), "cannot unmarshal"){
+		if !strings.Contains(err.Error(), "cannot unmarshal") {
 			t.Error("invalid error message")
 		}
 	})
@@ -67,7 +74,7 @@ func TestGet(t *testing.T) {
 			Method:             http.MethodGet,
 			Url:                "http://api.github.com",
 			ResponseStatusCode: http.StatusOK,
-			ResponseBody:        `{"current_user_url": "http://api.github.com"}`,
+			ResponseBody:       `{"current_user_url": "http://api.github.com"}`,
 		}
 
 		gohttp.AddMock(mock)
@@ -86,4 +93,5 @@ func TestGet(t *testing.T) {
 		}
 
 	})
+
 }
